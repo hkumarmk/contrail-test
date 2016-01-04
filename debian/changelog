@@ -1,0 +1,8 @@
+contrail-test (2.11); urgency=low
+
+  * Initial package build
+    Made contrail-test to standard python package format by moving the code
+    under contrail-test/ directory
+    Created debian directory with appropriate content 
+
+ -- Harish Kumar <harishku@juniper.net>  Thu, 31 Dec 2015 06:18:31 +0000
