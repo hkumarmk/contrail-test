@@ -5,7 +5,7 @@ with open('requirements.txt', 'r') as fp:
 
 setup(
     name='contrail-test',
-    version='0.1',
+    version='2.11',
     long_description=__doc__,
     packages=find_packages(),
     include_package_data=True,
