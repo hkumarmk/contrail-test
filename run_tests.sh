@@ -44,7 +44,7 @@ concurrency=""
 parallel=0
 contrail_fab_path='/opt/contrail/utils'
 
-if ! options=$(getopt -o VNnfuUsthdC:lLmF:T:c: -l virtual-env,no-virtual-env,no-site-packages,force,update,upload,sanity,parallel,help,debug,config:logging,logging-config,send-mail,features:tags:concurrency:contrail-fab-path: -- "$@")
+if ! options=$(getopt -o VNnfuUsthdC:lLmF:T:c: -l virtual-env,no-virtual-env,no-site-packages,force,update,upload,sanity,parallel,help,debug,config:,logging,logging-config,send-mail,features:,tags:,concurrency:,contrail-fab-path: -- "$@")
 then
     # parse error
     usage
