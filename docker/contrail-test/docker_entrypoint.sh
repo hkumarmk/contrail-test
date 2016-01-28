@@ -1,7 +1,28 @@
 #!/usr/bin/env bash -x
 
-while getopts ":t:p:f:" opt; do
+function usage {
+    cat <<EOF
+Usage: $0 [OPTIONS]
+
+Run contrail-test in container
+
+  -h  Print help
+  -t  Testbed file, Default: /opt/contrail/utils/fabfile/testbeds/testbed.py
+  -p  contrail fab utils path. Default: /opt/contrail/utils
+  -f  features to test. Default: sanity
+      Valid options:
+        sanity, quick_sanity, ci_sanity, ci_sanity_WIP, ci_svc_sanity,
+        upgrade, webui_sanity, ci_webui_sanity, devstack_sanity, upgrade_only
+
+EOF
+}
+
+while getopts ":t:p:f:h" opt; do
   case $opt in
+    h)
+      usage
+      exit
+      ;;
     t)
       testbed_input=$OPTARG
       ;;
