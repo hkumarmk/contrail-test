@@ -2699,7 +2699,7 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
                 username, self.inputs.cfgm_ips[0]),
                 password=password, warn_only=True, abort_on_prompts=False, debug=True):
 
-            status = run('cd /opt/contrail/utils;' + add_static_route_cmd)
+            status = run('cd /usr/share/contrail-utils/;' + add_static_route_cmd)
             self.logger.debug("%s" % status)
 
         compute_ip = vm2_fixture.vm_node_ip
@@ -2767,7 +2767,7 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
             host_string='%s@%s' % (
                 username, self.inputs.cfgm_ips[0]),
                 password=password, warn_only=True, abort_on_prompts=False, debug=True):
-            status = run('cd /opt/contrail/utils;' + del_static_route_cmd)
+            status = run('cd /usr/share/contrail-utils/;' + del_static_route_cmd)
             self.logger.debug("%s" % status)
         assert result
         return True
@@ -2999,7 +2999,7 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
             host_string='%s@%s' % (
                 username, self.inputs.cfgm_ips[0]),
                 password=password, warn_only=True, abort_on_prompts=False, debug=True):
-            status = run('cd /opt/contrail/utils;' + add_static_route_cmd)
+            status = run('cd /usr/share/contrail-utils/;' + add_static_route_cmd)
             self.logger.debug("%s" % status)
 
         fip_fixture = self.useFixture(
@@ -3056,7 +3056,7 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
             host_string='%s@%s' % (
                 username, self.inputs.cfgm_ip),
                 password=password, warn_only=True, abort_on_prompts=False, debug=True):
-            status = run('cd /opt/contrail/utils;' + add_static_route_cmd)
+            status = run('cd /usr/share/contrail-utils/;' + add_static_route_cmd)
             self.logger.debug("%s" % status)
 
         execute_cmd(session, cmd, self.logger)
@@ -3096,9 +3096,9 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
             host_string='%s@%s' % (
                 username, self.inputs.cfgm_ip),
                 password=password, warn_only=True, abort_on_prompts=False, debug=True):
-            status = run('cd /opt/contrail/utils;' + del_static_route_cmd1)
+            status = run('cd /usr/share/contrail-utils/;' + del_static_route_cmd1)
             self.logger.debug("%s" % status)
-            status = run('cd /opt/contrail/utils;' + del_static_route_cmd2)
+            status = run('cd /usr/share/contrail-utils/;' + del_static_route_cmd2)
             self.logger.debug("%s" % status)
 
         assert result, 'Failed to take route with longest prefix'
@@ -3216,10 +3216,10 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
             host_string='%s@%s' % (
                 username, self.inputs.cfgm_ip),
                 password=password, warn_only=True, abort_on_prompts=False, debug=True):
-            status1 = run('cd /opt/contrail/utils;' + add_static_route_cmd1)
+            status1 = run('cd /usr/share/contrail-utils/;' + add_static_route_cmd1)
             self.logger.debug("%s" % status1)
 
-            status2 = run('cd /opt/contrail/utils;' + add_static_route_cmd2)
+            status2 = run('cd /usr/share/contrail-utils/;' + add_static_route_cmd2)
             self.logger.debug("%s" % status2)
 
         fip_pool_name1 = get_random_name('test-floating-pool1')
@@ -3315,9 +3315,9 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
             host_string='%s@%s' % (
                 username, self.inputs.cfgm_ip),
                 password=password, warn_only=True, abort_on_prompts=False, debug=True):
-            status1 = run('cd /opt/contrail/utils;' + del_static_route_cmd1)
+            status1 = run('cd /usr/share/contrail-utils/;' + del_static_route_cmd1)
             self.logger.debug("%s" % status1)
-            status2 = run('cd /opt/contrail/utils;' + del_static_route_cmd2)
+            status2 = run('cd /usr/share/contrail-utils/;' + del_static_route_cmd2)
             self.logger.debug("%s" % status2)
 
         assert result, 'Longest prefix match rule not followed'

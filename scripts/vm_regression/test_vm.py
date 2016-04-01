@@ -2223,14 +2223,14 @@ class TestBasicVMVN6(BaseVnVmTest):
         cfgm_host_new_name = cfgm_hostname + '-test'
         cfgm_control_ip = self.inputs.host_data[cfgm_hostname]['host_control_ip']
         cfgm_intro_port = '8084'
-        link_local_args = "--admin_user %s \
+        link_local_args = "--api_server_ip %s --admin_user %s \
          --admin_password %s --linklocal_service_name cfgmintrospect\
          --linklocal_service_ip 169.254.1.2\
          --linklocal_service_port 80\
          --ipfabric_dns_service_name %s\
          --ipfabric_service_port %s\
          --admin_tenant_name %s\
-         " %( self.inputs.stack_user, self.inputs.stack_password,
+         " % (cfgm_control_ip, self.inputs.stack_user, self.inputs.stack_password,
                         cfgm_host_new_name, cfgm_intro_port,
                         self.inputs.project_name)
         if not self.inputs.devstack:
@@ -2790,18 +2790,18 @@ echo "Hello World.  The time is now $(date -R)!" | tee /tmp/output.txt
         cfgm_host_new_name = cfgm_hostname + '-test'
         cfgm_control_ip = self.inputs.host_data[cfgm_hostname]['host_control_ip']
         cfgm_intro_port = '8084'
-        link_local_args = "--admin_user %s \
+        link_local_args = "--api_server_ip %s --admin_user %s \
          --admin_password %s --linklocal_service_name cfgmintrospect\
          --linklocal_service_ip 169.254.1.2\
          --linklocal_service_port 80\
          --ipfabric_dns_service_name %s\
          --ipfabric_service_port %s\
          --admin_tenant_name %s\
-         " %( self.inputs.stack_user, self.inputs.stack_password,
+         " %(cfgm_control_ip, self.inputs.stack_user, self.inputs.stack_password,
                         cfgm_host_new_name, cfgm_intro_port,
                         self.inputs.project_name)
         if not self.inputs.devstack:
-            cmd = "python /opt/contrail/utils/provision_linklocal.py --oper add %s" % (link_local_args)
+            cmd = "python /usr/share/contrail-utils/provision_linklocal.py --oper add %s" % (link_local_args)
         else:
             cmd = "python /opt/stack/contrail/controller/src/config/utils/provision_linklocal.py  --oper add %s" % (
                 link_local_args)
@@ -2847,7 +2847,7 @@ echo "Hello World.  The time is now $(date -R)!" | tee /tmp/output.txt
             result = False
 
         if not self.inputs.devstack:
-            cmd = "python /opt/contrail/utils/provision_linklocal.py --oper delete %s" % (link_local_args)
+            cmd = "python /usr/share/contrail-utils/provision_linklocal.py --oper delete %s" % (link_local_args)
         else:
             cmd = "python /opt/stack/contrail/controller/src/config/utils/provision_linklocal.py --oper delete %s" % (
                 link_local_args)
@@ -2938,7 +2938,7 @@ class TestBasicVMVN9(BaseVnVmTest):
         with settings(host_string='%s@%s' % (self.inputs.username, self.inputs.cfgm_ips[0]), 
                                     password=self.inputs.password, warn_only=True, 
                                     abort_on_prompts=False, debug=True):
-            status = run('cd /opt/contrail/utils;' + add_static_route_cmd)
+            status = run('cd /usr/share/contrail-utils/;' + add_static_route_cmd)
             self.logger.debug("%s" % status)
             m = re.search(r'Creating Route table', status)
             assert m, 'Failed in Creating Route table'
@@ -2995,7 +2995,7 @@ class TestBasicVMVN9(BaseVnVmTest):
         with settings(host_string='%s@%s' % (self.inputs.username, self.inputs.cfgm_ips[0]), 
                         password=self.inputs.password, warn_only=True, 
                         abort_on_prompts=False, debug=True):
-            del_status = run('cd /opt/contrail/utils;' + del_static_route_cmd)
+            del_status = run('cd /usr/share/contrail-utils/;' + del_static_route_cmd)
             self.logger.debug("%s" % del_status)
         time.sleep(10)
 
@@ -3068,7 +3068,7 @@ class TestBasicVMVN9(BaseVnVmTest):
             #check if we provided dns/IP
             try:
                 socket.inet_aton(service_info[service][2])
-                metadata_args = "--admin_user %s\
+                metadata_args = "--api_server_ip %s --admin_user %s\
                     --admin_password %s\
                     --admin_tenant_name %s\
                     --linklocal_service_name %s\
@@ -3076,7 +3076,7 @@ class TestBasicVMVN9(BaseVnVmTest):
                     --linklocal_service_port %s\
                     --ipfabric_service_ip %s\
                     --ipfabric_service_port %s\
-                    --oper add" % (ks_admin_user,
+                    --oper add" % (cfgm_ip, ks_admin_user,
                                    ks_admin_password,
                                    ks_admin_tenant,
                                    service,
@@ -3085,7 +3085,7 @@ class TestBasicVMVN9(BaseVnVmTest):
                                    service_info[service][2],
                                    service_info[service][1])
             except socket.error:
-                metadata_args = "--admin_user %s\
+                metadata_args = "--api_server_ip %s --admin_user %s\
                     --admin_password %s\
                     --admin_tenant_name %s\
                     --linklocal_service_name %s\
@@ -3093,7 +3093,7 @@ class TestBasicVMVN9(BaseVnVmTest):
                     --linklocal_service_port %s\
                     --ipfabric_dns_service_name %s\
                     --ipfabric_service_port %s\
-                    --oper add" % (ks_admin_user,
+                    --oper add" % (cfgm_ip, ks_admin_user,
                                    ks_admin_password,
                                    ks_admin_tenant,
                                    service,
@@ -3105,7 +3105,7 @@ class TestBasicVMVN9(BaseVnVmTest):
                           password=cfgm_pwd, warn_only=True,
                           abort_on_prompts=False):
                 status = run(
-                    "python /opt/contrail/utils/provision_linklocal.py %s" %
+                    "python /usr/share/contrail-utils/provision_linklocal.py %s" %
                     (metadata_args))
                 self.logger.debug("%s" % status)
             sleep(2)
@@ -3180,7 +3180,7 @@ class TestBasicVMVN9(BaseVnVmTest):
             self.logger.info('unconfigure link local service %s' % service)
             try:
                 socket.inet_aton(service_info[service][2])
-                metadata_args_delete = "--admin_user %s\
+                metadata_args_delete = "--api_server_ip %s --admin_user %s\
                     --admin_password %s\
                     --admin_tenant_name %s\
                     --linklocal_service_name %s\
@@ -3188,7 +3188,7 @@ class TestBasicVMVN9(BaseVnVmTest):
                     --linklocal_service_port %s\
                     --ipfabric_service_ip %s\
                     --ipfabric_service_port %s\
-                    --oper delete" % (ks_admin_user,
+                    --oper delete" % (cfgm_ip, ks_admin_user,
                                    ks_admin_password,
                                    ks_admin_tenant,
                                    service,
@@ -3197,7 +3197,7 @@ class TestBasicVMVN9(BaseVnVmTest):
                                    service_info[service][2],
                                    service_info[service][1])
             except socket.error:
-                metadata_args_delete = "--admin_user %s\
+                metadata_args_delete = "--api_server_ip %s --admin_user %s\
                     --admin_password %s\
                     --admin_tenant_name %s\
                     --linklocal_service_name %s\
@@ -3205,7 +3205,7 @@ class TestBasicVMVN9(BaseVnVmTest):
                     --linklocal_service_port %s\
                     --ipfabric_dns_service_name %s\
                     --ipfabric_service_port %s\
-                    --oper delete" % (ks_admin_user,
+                    --oper delete" % (cfgm_ip, ks_admin_user,
                                    ks_admin_password,
                                    ks_admin_tenant,
                                    service,
@@ -3217,7 +3217,7 @@ class TestBasicVMVN9(BaseVnVmTest):
                           password=cfgm_pwd, warn_only=True,
                           abort_on_prompts=False):
                 status = run(
-                    "python /opt/contrail/utils/provision_linklocal.py %s" %
+                    "python /usr/share/contrail-utils/provision_linklocal.py %s" %
                     (metadata_args_delete))
                 self.logger.debug("%s" % status)
         return True
