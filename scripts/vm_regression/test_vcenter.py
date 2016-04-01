@@ -46,7 +46,7 @@ class TestVcenter(BaseVnVmTest):
         vm1.vm_obj.assign_ip('eth0', '12.11.10.101', '12.11.10.1', '255.255.255.0')
         assert vm1.wait_till_vm_is_up()
         vm2 = self.create_vm(vn_fixture=vn_fixture, vm_name=get_random_name('vm'))
-        vm2.vm_obj.assign_ip('eth0', '12.11.10.102')
+        vm2.vm_obj.assign_ip('eth0', '12.11.10.102', '12.11.10.1', '255.255.255.0')
         assert vm2.wait_till_vm_is_up()
 
         assert vm1.ping_with_certainty(dst_vm_fixture=\
@@ -98,6 +98,38 @@ class TestVcenter(BaseVnVmTest):
             "Ping from %s to %s failed" % (vm2_fixture.vm_name, vm1_fixture.vm_name)
         return True
 
+    @test.attr(type=['vcenter'])
+    @preposttest_wrapper
+    def test_vcenter_vm_interface_change(self):
+        '''
+        Description:
+        Test steps:
+               1. Launch 2 VN 
+               2.Launch one vm in net1
+               3.Verify vm in contrail components
+               4.Change the interface of vm to net2 
+               5. Verify VM in contrail-components
+        Pass criteria: Inteface change should be reflected in all contrail-components.
+        Maintainer : sunilbasker@juniper.net
+        '''
+        vn1_fixture = self.create_vn(vn_name=get_random_name('net1'))
+        assert vn1_fixture.verify_on_setup()
+        vn2_fixture = self.create_vn(vn_name=get_random_name('net2'))
+        assert vn2_fixture.verify_on_setup()
+        vm1_fixture = self.create_vm(vn_fixture=vn1_fixture, vm_name=get_random_name('net1_vm1'))
+        assert vm1_fixture.wait_till_vm_is_up()
+        assert vm1_fixture.verify_on_setup()
+        vm2_fixture = self.create_vm(vn_fixture=vn2_fixture, vm_name=get_random_name('net2_vm1'))
+        assert vm2_fixture.wait_till_vm_is_up()
+        assert vm2_fixture.verify_on_setup()
+        assert vm2_fixture.ping_with_certainty(dst_vm_fixture=vm1_fixture, expectation=False),\
+            "Ping from %s to %s is expected to fail" % (vm2_fixture.vm_name, vm1_fixture.vm_name)
+        vm1_fixture.orch.change_network_to_vm(vm1_fixture.vm_obj,vn2_fixture.vn_name) 
+        vm1_fixture.read()  
+        assert vm1_fixture.verify_on_setup()
+        assert vm2_fixture.ping_with_certainty(dst_vm_fixture=vm1_fixture),\
+            "Ping from %s to %s failed" % (vm2_fixture.vm_name, vm1_fixture.vm_name)
+        return True
 
 class TestVcenter2(BaseVnVmTest):
     @classmethod

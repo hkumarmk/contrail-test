@@ -15,7 +15,9 @@ from traffic.core.helpers import Sender, Receiver
 from base import BaseVnVmTest
 from common import isolated_creds
 import inspect
-
+from tcutils.util import skip_because
+from tcutils.tcpdump_utils import start_tcpdump_for_intf,\
+     stop_tcpdump_for_intf, verify_tcpdump_count
 import test
 
 class TestBasicVMVN0(BaseVnVmTest):
@@ -29,6 +31,7 @@ class TestBasicVMVN0(BaseVnVmTest):
         super(TestBasicVMVN0, cls).tearDownClass()
     
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter',address_family = 'v6')
     def test_bring_up_vm_with_control_node_down(self):
         '''
         Description: Create VM when there is not active control node. Verify VM comes up fine when all control nodes are back
@@ -145,6 +148,7 @@ class TestBasicVMVN0(BaseVnVmTest):
     # end test_bring_up_vm_with_control_node_down
     
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter',address_family = 'v6')
     def test_ipam_persistence_across_restart_reboots(self):
         '''
         Description: Test to validate IPAM persistence across restarts and reboots of nodes.
@@ -174,7 +178,7 @@ class TestBasicVMVN0(BaseVnVmTest):
 
         self.nova_h.wait_till_vm_is_up( vm1_fixture.vm_obj )
         self.nova_h.wait_till_vm_is_up( vm2_fixture.vm_obj )
-        assert vm1_fixture.ping_to_ip( vm2_fixture.vm_ip )
+        assert vm1_fixture.ping_with_certainty(vm2_fixture.vm_ip)
         self.logger.info('Will restart the services now')
         for compute_ip in self.inputs.compute_ips:
             pass
@@ -187,10 +191,11 @@ class TestBasicVMVN0(BaseVnVmTest):
         self.logger.info('Will check if the ipam persists and ping b/w VMs is still successful')
 
         assert ipam_obj.verify_on_setup()
-        assert vm1_fixture.ping_to_ip( vm2_fixture.vm_ip )
+        assert vm1_fixture.ping_with_certainty(vm2_fixture.vm_ip)
         return True
     
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter',address_family = 'v6')
     def test_multistep_vm_add_delete_with_stop_start_service(self):
         '''
         Description: Test to validate VMs addition deletion after service restarts.
@@ -243,6 +248,7 @@ class TestBasicVMVN0(BaseVnVmTest):
     # end test_multistep_vm_add_delete_with_stop_start_service
     
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter',address_family = 'v6')
     def test_multistep_vm_delete_with_stop_start_service(self):
         '''
         Description: Test to validate VM's deletion attempt fails when the contrail-vrouter-agent service is down.
@@ -284,6 +290,7 @@ class TestBasicVMVN0(BaseVnVmTest):
     # end test_multistep_vm_delete_with_stop_start_service
     
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter')
     def test_nova_com_sch_restart_with_multiple_vn_vm(self):
         '''
         Description: Test to validate that multiple VM creation and deletion after service restarts.
@@ -338,6 +345,7 @@ class TestBasicVMVN0(BaseVnVmTest):
     
     @test.attr(type=['sanity'])
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter',address_family = 'v6')
     def test_process_restart_in_policy_between_vns(self):
         ''' Test to validate that with policy having rule to check icmp fwding between VMs on different VNs , ping between VMs should pass
         with process restarts
@@ -437,6 +445,7 @@ class TestBasicVMVN0(BaseVnVmTest):
     
     @test.attr(type=['sanity', 'ci_sanity_WIP'])
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter',address_family = 'v6')
     def test_process_restart_with_multiple_vn_vm(self):
         '''
         Description: Test to validate that multiple VM creation and deletion after service restarts.
@@ -479,6 +488,7 @@ class TestBasicVMVN0(BaseVnVmTest):
     #end test_process_restart_with_multiple_vn_vm
     
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter',address_family = 'v6')
     def test_kill_service_verify_core_generation(self):
         '''
         Description: Test to Validate core is generated for services on SIGQUIT
@@ -561,6 +571,7 @@ class TestBasicVMVN0(BaseVnVmTest):
 
     @test.attr(type=['sanity'])
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter',address_family = 'v6')
     def test_control_node_switchover(self):
         ''' Stop the control node and check peering with agent fallback to other control node.
             1. Pick one VN from respource pool which has 2 VM's in it
@@ -666,6 +677,7 @@ class TestBasicVMVN0(BaseVnVmTest):
 
     @test.attr(type=['sanity'])
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter',address_family = 'v6')
     def test_max_vm_flows(self):
         ''' Test to validate setting up of the max_vm_flows parameter in agent
             config file has expected effect on the flows in the system.
@@ -840,5 +852,93 @@ class TestBasicVMVN0(BaseVnVmTest):
 
         return result
     # end test_max_vm_flows
+
+    @preposttest_wrapper
+    def test_underlay_broadcast_traffic_handling(self):
+        ''' Test the underlay brocast traffic handling by vrouter. (Bug-1545229).
+            1. Send broadcast traffic from one compute node.
+            2. Other compute in same subnet should receive that traffic.
+            3. Receiving compute should treat this traffic as underlay. 
+            4. Compute should not replicate the packet and send the copy back.  
+        Pass criteria: Step 3-4 should pass
+        '''
+        if (len(self.inputs.compute_ips) < 2):
+             raise self.skipTest(
+                "Skipping Test. At least 2 compute node required to run the test")
+        result = True
+
+        # Find ignore brocast exiting value 
+        ignore_broadcasts={}
+        cmd='cat /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts'
+        for item in self.inputs.compute_ips:
+            ignore_broadcasts[item]=self.inputs.run_cmd_on_server(
+                item, cmd,
+                self.inputs.host_data[item]['username'],
+                self.inputs.host_data[item]['password'])
+
+        # Set ignore brocast to false 
+        cmd='echo "0" > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts'
+        for item in self.inputs.compute_ips:
+            self.inputs.run_cmd_on_server(
+                item, cmd,
+                self.inputs.host_data[item]['username'],
+                self.inputs.host_data[item]['password'])
+
+        # Find the Brocast address from first compute
+        cmd='ifconfig | grep %s' %(self.inputs.host_data[item]['host_control_ip'])
+        output=self.inputs.run_cmd_on_server(
+                item, cmd,
+                self.inputs.host_data[item]['username'],
+                self.inputs.host_data[item]['password'])
+        broadcast_address=output.split(" ")[3].split(":")[1]
+
+        # Start tcpdump on receiving compute
+        inspect_h = self.agent_inspect[self.inputs.compute_ips[1]]
+        comp_intf = inspect_h.get_vna_interface_by_type('eth')
+        if len(comp_intf) == 1:
+            comp_intf = comp_intf[0]
+        self.logger.info('Agent interface name: %s' % comp_intf)
+        compute_ip = self.inputs.compute_ips[1]
+        compute_user = self.inputs.host_data[self.inputs.compute_ips[1]]['username']
+        compute_password = self.inputs.host_data[self.inputs.compute_ips[1]]['password']
+        filters = "host %s" %(broadcast_address)
+
+        (session, pcap) = start_tcpdump_for_intf(compute_ip, compute_user,
+            compute_password, comp_intf, filters, self.logger)
+
+        sleep(5)
+
+        # Ping broadcast address
+        self.logger.info(
+            'Pinging broacast address %s from compute %s' %(broadcast_address,\
+                                     self.inputs.host_data[self.inputs.compute_ips[0]]['host_control_ip']))
+        packet_count = 10
+        cmd='ping -c %s -b %s' %(packet_count, broadcast_address)
+        output=self.inputs.run_cmd_on_server(
+                self.inputs.compute_ips[0], cmd,
+                self.inputs.host_data[item]['username'],
+                self.inputs.host_data[item]['password'])
+        sleep(5)
+        
+        # Stop tcpdump
+        stop_tcpdump_for_intf(session, pcap, self.logger)
+
+        # Set back the ignore_broadcasts to original value
+        for item in self.inputs.compute_ips:
+            cmd='echo "%s" > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts' %(ignore_broadcasts[item])
+            self.inputs.run_cmd_on_server(
+                item, cmd,
+                self.inputs.host_data[item]['username'],
+                self.inputs.host_data[item]['password'])
+
+        # Analyze pcap
+        assert verify_tcpdump_count(self, session, pcap, exp_count=packet_count), "There should only be %s\
+                                     packet from source %s on compute %s" %(packet_count, broadcast_address, compute_ip)
+        self.logger.info(
+            'Packet count matched: Compute %s has receive only %s packet from source IP %s.\
+                                      No duplicate packet seen' %(compute_ip, packet_count, broadcast_address))
+        return result 
+
+    # end test_underlay_brodcast_traffic_handling 
 
 # end TestBasicVMVN0

@@ -19,7 +19,7 @@ from tcutils.pkgs.Traffic.traffic.core.profile import create, ContinuousProfile
 from tcutils.pkgs.Traffic.traffic.core.helpers import Host
 from tcutils.pkgs.Traffic.traffic.core.helpers import Sender, Receiver
 from tcutils.util import skip_because
-from base import BasevDNSTest
+from common.vdns.base import BasevDNSTest
 from common import isolated_creds
 import inspect
 from vnc_api import vnc_api
@@ -543,8 +543,9 @@ class TestvDNS0(BasevDNSTest):
                     password=proj_pass[proj], connections=admin_con))
             user_fixture.add_user_to_tenant(proj, proj_user[proj] , 'admin')
             project_inputs = ContrailTestInit(
-                    self.ini_file, stack_user=project_fixture.username,
-                    stack_password=project_fixture.password, project_fq_name=['default-domain', proj], logger=self.logger)
+                self.ini_file, stack_user=project_fixture.project_username,
+                stack_password=project_fixture.project_user_password,
+                stack_tenant=proj, logger=self.logger)
             project_connections = ContrailConnections(project_inputs, logger= self.logger)
             proj_fixt = self.useFixture(
                 ProjectTestFixtureGen(self.vnc_lib, project_name=proj))

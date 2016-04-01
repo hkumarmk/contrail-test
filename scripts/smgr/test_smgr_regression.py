@@ -8,7 +8,7 @@ import unittest
 import testtools
 from common.contrail_test_init import ContrailTestInit
 from smgr_common import SmgrFixture
-import smgr_upgrade_tests
+import smgr_upgrade_tests, smgr_inventory_monitoring_tests
 from fabric.api import settings, run
 import time
 import pdb
@@ -364,4 +364,52 @@ class SmgrRegressionTests(ServerManagerTest):
         return result
     #end test_restart_servers_using_tag
 
+    def test_inventory_information(self):
+        self.logger.info("Check for inventory information of the servers attached to the SM.")
+        self.logger.info("Verify few of the fields in the inventory information for the servers attached to the SM.")
+        nodes = self.smgr_fixture.testbed.env.roledefs['all']
+        # Atleast 1 node is needed to run this test.
+        if len(nodes) < 1:
+            raise self.skipTest(
+                "Skipping Test. At least 1 target node required to run the test")
 
+        #Run general inventory show test cases.
+        if not smgr_inventory_monitoring_tests.inventory_show_tests(self):
+            self.logger.error("Inventory Show Tests FAILED !!!")
+            return False
+        self.logger.info("Inventory Show Tests passed!!!")
+
+        #Run field verification tests on each of the computes inventory output.
+        target_computes=self.smgr_fixture.get_compute_node_from_testbed_py()
+        for each_target_node in target_computes:
+            node_name=self.smgr_fixture.get_server_with_ip_from_db(each_target_node.split('@')[1])['server'][0]['id']
+            if not smgr_inventory_monitoring_tests.inventory_tests(self, node_name):
+                self.logger.error("Inventory Tests for %s FAILED !!!" % node_name)
+                return False
+        self.logger.info("Inventory Tests for all the compute nodes passed!!!")
+        return True
+    #end test_inventory_information
+
+    def test_monitoring_information(self):
+        self.logger.info("Check for monitoring information of the servers attached to the SM.")
+        self.logger.info("Verify few of the fields in the monitoring information for the servers attached to the SM.")
+        nodes = self.smgr_fixture.testbed.env.roledefs['all']
+        # Atleast 1 node is needed to run this test.
+        if len(nodes) < 1:
+            raise self.skipTest(
+                "Skipping Test. At least 1 target node required to run the test")
+
+        #Run general monitoring show test cases.
+        if not smgr_inventory_monitoring_tests.monitoring_show_tests(self):
+            self.logger.error("Monitoring Show Tests FAILED !!!")
+            return False
+        self.logger.info("Monitoring Show Tests passed!!!")
+
+        #Run negative tests and restart cases on monitoring functionality.
+        if not smgr_inventory_monitoring_tests.monitoring_functionality_tests(self):
+            self.logger.error("Monitoring Functionality Tests FAILED !!!")
+            return False
+        self.logger.info("Monitoring Functionality Tests passed!!!")
+        return True
+
+    #end test_monitoring_information

@@ -1,5 +1,5 @@
 import time
-import test
+import test_v1
 from common.connections import ContrailConnections
 from common import isolated_creds
 from vn_test import VNFixture
@@ -22,24 +22,11 @@ import copy
 contrail_api_conf = '/etc/contrail/contrail-api.conf'
 
 
-class BaseHeatTest(test.BaseTestCase):
+class BaseHeatTest(test_v1.BaseTestCase_v1):
 
     @classmethod
     def setUpClass(cls):
         super(BaseHeatTest, cls).setUpClass()
-        cls.isolated_creds = isolated_creds.IsolatedCreds(
-            cls.__name__,
-            cls.inputs,
-            ini_file=cls.ini_file,
-            logger=cls.logger)
-        cls.admin_connections = cls.isolated_creds.get_admin_connections()
-        cls.isolated_creds.setUp()
-        cls.project = cls.isolated_creds.create_tenant()
-        cls.isolated_creds.create_and_attach_user_to_tenant()
-        cls.inputs = cls.isolated_creds.get_inputs()
-        cls.connections = cls.isolated_creds.get_conections()
-        cls.admin_inputs = cls.isolated_creds.get_admin_inputs()
-        cls.admin_connections = cls.isolated_creds.get_admin_connections()
         cls.quantum_h = cls.connections.quantum_h
         cls.nova_h = cls.connections.nova_h
         cls.vnc_lib = cls.connections.vnc_lib
@@ -51,7 +38,6 @@ class BaseHeatTest(test.BaseTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.isolated_creds.delete_tenant()
         super(BaseHeatTest, cls).tearDownClass()
     # end tearDownClass
 
@@ -135,9 +121,9 @@ class BaseHeatTest(test.BaseTestCase):
         op = stack.stacks.get(stack_name).outputs
         time.sleep(5)
         vm1_fix = self.useFixture(VMFixture(project_name=self.inputs.project_name,
-                                            vn_obj=vn_list[0].obj, vm_name='left_vm', connections=self.connections))
+                                            vn_obj=vn_list[0].obj, vm_name=get_random_name('left_vm'), connections=self.connections))
         vm2_fix = self.useFixture(VMFixture(project_name=self.inputs.project_name,
-                                            vn_obj=vn_list[1].obj, vm_name='right_vm', connections=self.connections))
+                                            vn_obj=vn_list[1].obj, vm_name=get_random_name('right_vm'), connections=self.connections))
         assert vm1_fix.wait_till_vm_is_up()
         assert vm2_fix.wait_till_vm_is_up()
         for output in op:
