@@ -79,22 +79,22 @@ class remoteCmdExecuter:
 
     def execCmd(self, cmd, username, password, node, local_ip):
         fab_connections.clear()
-        with hide('everything'):
-            with settings(
-                    host_string='%s@%s' % (username, local_ip),
-                    password=password,
-                    warn_only=True, abort_on_prompts=False, debug=True):
-                if 'show' in cmd:
+        if 'show' in cmd:
+            with hide('everything'):
+                with settings(
+                        host_string='%s@%s' % (username, local_ip),
+                        password=password,
+                        warn_only=True, abort_on_prompts=False, debug=True):
                     result = run_netconf_on_node(
                         host_string='%s@%s' % (
                                     username, node),
                         password=password,
                         cmds=cmd, op_format='json')
-                #ssh_conf_file_alternate = "-o UserKnownHostsFile=/dev/null -o strictHostKeyChecking=no"
-                else:
-                    output = run_fab_cmd_on_node(
-                        host_string='%s@%s' % (username, node),
-                        password=password, cmd=cmd, as_sudo=True)
+        else:
+            result = run_cmd(
+                '%s@%s' % (username, node),
+                cmd, password, '%s@%s' % (username, local_ip),
+                password, with_sudo=True)
 
         return result
 
