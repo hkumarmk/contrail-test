@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source tools/common.sh
+
 function die
 {
     local message=$1
@@ -52,7 +54,7 @@ concurrency=""
 parallel=0
 contrail_fab_path='/opt/contrail/utils'
 
-if ! options=$(getopt -o VNnfuUsthdC:lLmF:T:c: -l virtual-env,no-virtual-env,no-site-packages,force,update,upload,sanity,parallel,help,debug,config:,logging,logging-config,send-mail,features:,tags:,concurrency:,contrail-fab-path: -- "$@")
+if ! options=$(getopt -o pVNnfuUsthdC:lLmF:T:c: -l prepare,virtual-env,no-virtual-env,no-site-packages,force,update,upload,sanity,parallel,help,debug,config:,logging,logging-config,send-mail,features:,tags:,concurrency:,contrail-fab-path: -- "$@")
 then
     # parse error
     usage
@@ -64,6 +66,7 @@ first_uu=yes
 while [ $# -gt 0 ]; do
   case "$1" in
     -h|--help) usage; exit;;
+    -p|--prepare) prepare; exit;;
     -V|--virtual-env) always_venv=1; never_venv=0;;
     -N|--no-virtual-env) always_venv=0; never_venv=1;;
     -n|--no-site-packages) no_site_packages=1;;
@@ -92,15 +95,7 @@ done
 
 #export SCRIPT_TS=$(date +"%F_%T")
 
-if [ -n "$config_file" ]; then
-    config_file=`readlink -f "$config_file"`
-    export TEST_CONFIG_DIR=`dirname "$config_file"`
-    export TEST_CONFIG_FILE=`basename "$config_file"`
-fi
-
-if [ ! -f "$config_file" ]; then
-    python tools/configure.py $(readlink -f .) -p $contrail_fab_path
-fi
+prepare
 
 if [ $logging -eq 1 ]; then
     if [ ! -f "$logging_config" ]; then
