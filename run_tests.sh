@@ -13,7 +13,7 @@ function usage {
   echo "Usage: $0 [OPTION]..."
   echo "Run Contrail test suite"
   echo ""
-  echo "  -p, --prepare		   Only prepare the system and exit. This is useable when somebody want to run the tests manually.
+  echo "  -p, --prepare		   Only prepare the system and exit. This is useable when somebody want to run the tests manually."
   echo "  -V, --virtual-env        Always use virtualenv.  Install automatically if not present"
   echo "  -N, --no-virtual-env     Don't use virtualenv.  Run tests in local environment"
   echo "  -n, --no-site-packages   Isolate the virtualenv from the global Python environment"
