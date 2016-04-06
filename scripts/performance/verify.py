@@ -12,7 +12,7 @@ from tcutils.parsers.flow_rate_parse import FlowRateParser
 from config import ConfigPerformance
 from fabric.context_managers import settings, hide
 from fabric.operations import put, get, local
-from util import fab_put_file_to_vm, run_fab_cmd_on_node
+from tcutils.util import fab_put_file_to_vm, run_cmd
 from fabric.api import env, run
 from common.servicechain.config import ConfigSvcChain
 
@@ -380,15 +380,19 @@ class PerformanceTest(ConfigPerformance,ConfigSvcChain):
 
         #Run pktgen on VM
         output = ''
-        with hide('everything'):
-            with settings(host_string='%s@%s' % (self.inputs.username,self.vm1_fixture.vm_node_ip),
-                             password=self.inputs.password, warn_only=True,abort_on_prompts= False):
-                cmd = 'chmod 755 /tmp/pktgen'
-                output = run_fab_cmd_on_node(host_string = '%s@%s'%(self.vm1_fixture.vm_username,self.vm1_fixture.local_ip),
-                                            password = self.vm1_fixture.vm_password, cmd = cmd, as_sudo=False)
-                cmd = 'sudo /tmp/pktgen'
-                output = run_fab_cmd_on_node(host_string = '%s@%s'%(self.vm1_fixture.vm_username,self.vm1_fixture.local_ip),
-                                    password = self.vm1_fixture.vm_password, cmd = cmd, as_sudo=False)
+
+        cmd = 'chmod 755 /tmp/pktgen'
+        output = run_cmd(
+            '%s@%s' % (self.vm1_fixture.vm_username,self.vm1_fixture.local_ip),
+            cmd, self.vm1_fixture.vm_password,
+            '%s@%s' % (self.inputs.username,self.vm1_fixture.vm_node_ip),
+            self.inputs.password
+        )
+        cmd = '/tmp/pktgen'
+        output = run_cmd('%s@%s'%(self.vm1_fixture.vm_username,self.vm1_fixture.local_ip),
+                         cmd, self.vm1_fixture.vm_password,
+                         '%s@%s' % (self.inputs.username,self.vm1_fixture.vm_node_ip),
+                         self.inputs.password, with_sudo=True)
 
         #Check flow -l to check the number of flows created.
         with hide('everything'):
