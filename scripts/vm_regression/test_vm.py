@@ -3500,6 +3500,7 @@ class TestBasicVMVNx(BaseVnVmTest):
         return transfer_result
     #end test_vm_file_trf_tftp_tests
 
+    @test.attr(type=['sanity'])
     @preposttest_wrapper
     def test_sctp_traffic_between_vm(self):
         '''
@@ -3548,6 +3549,7 @@ class TestBasicVMVNx(BaseVnVmTest):
                 connections=self.connections,
                 vn_obj=vn1_fixture.obj,
                 vm_name=vn1_vm1_name,
+                image_name='ubuntu-sctp',
                 node_name=self.compute_1
             ))
 
@@ -3557,6 +3559,7 @@ class TestBasicVMVNx(BaseVnVmTest):
                 connections=self.connections,
                 vn_obj=fvn_fixture.obj,
                 vm_name=fvn_vm1_name,
+                image_name='ubuntu-sctp',
                 node_name=self.compute_2
             ))
 
