@@ -1372,8 +1372,6 @@ class TestBasicVMVN4(BaseVnVmTest):
         assert vm1_fixture.wait_till_vm_is_up()
         assert vm2_fixture.wait_till_vm_is_up()
 
-        vm1_fixture.put_pub_key_to_vm()
-        vm2_fixture.put_pub_key_to_vm()
         for size in scp_test_file_sizes:
             self.logger.debug("-" * 80)
             self.logger.debug("FILE SIZE = %sB" % size)
