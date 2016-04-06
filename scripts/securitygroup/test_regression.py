@@ -2455,11 +2455,6 @@ class SecurityGroupSynAckTest(BaseSGTest, VerifySecGroup, ConfigPolicy):
 
 
 #creating new classes to run all tests with contrail apis
-class SecurityGroupRegressionTests1_contrail(SecurityGroupRegressionTests1):
-    @classmethod
-    def setUpClass(cls):
-        super(SecurityGroupRegressionTests1, cls).setUpClass()
-        cls.option = 'contrail'
 class SecurityGroupRegressionTests2_contrail(SecurityGroupRegressionTests2):
     @classmethod
     def setUpClass(cls):
