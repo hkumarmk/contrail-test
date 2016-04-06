@@ -312,8 +312,8 @@ class TestBasicPolicyConfig(BasePolicyTest):
             # provided by wrapper module if run in parallel test env
             topo = topology_class_name(
                 project=self.project.project_name,
-                username=self.project.username,
-                password=self.project.password)
+                username=self.project.project_username,
+                password=self.project.project_user_password)
         except NameError:
             topo = topology_class_name()
         #

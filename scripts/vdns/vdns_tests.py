@@ -1306,8 +1306,8 @@ class TestVdnsFixture(testtools.TestCase, VdnsFixture):
             project_inputs = self.useFixture(
                 ContrailTestInit(
                     self.ini_file,
-                    stack_user=project_fixture.username,
-                    stack_password=project_fixture.password,
+                    stack_user=project_fixture.project_username,
+                    stack_password=project_fixture.project_password,
                     stack_tenant=proj))
             project_connections = ContrailConnections(project_inputs)
             proj_fixt = self.useFixture(
@@ -2068,8 +2068,8 @@ class TestVdnsFixture(testtools.TestCase, VdnsFixture):
             project_inputs = self.useFixture(
                 ContrailTestInit(
                     self.ini_file,
-                    stack_user=project_fixture.username,
-                    stack_password=project_fixture.password,
+                    stack_user=project_fixture.project_username,
+                    stack_password=project_fixture.project_user_password,
                     stack_tenant=proj))
             project_connections = ContrailConnections(project_inputs)
             proj_fixt = self.useFixture(
@@ -2263,8 +2263,8 @@ class TestVdnsFixture(testtools.TestCase, VdnsFixture):
             project_inputs = self.useFixture(
                 ContrailTestInit(
                     self.ini_file,
-                    stack_user=project_fixture.username,
-                    stack_password=project_fixture.password,
+                    stack_user=project_fixture.project_username,
+                    stack_password=project_fixture.project_user_password,
                     stack_tenant=proj))
             project_connections = ContrailConnections(project_inputs)
             proj_fixt = self.useFixture(
