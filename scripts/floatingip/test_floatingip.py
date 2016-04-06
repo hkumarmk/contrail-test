@@ -1646,10 +1646,8 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
         vm5_name = get_random_name('vm5')
 
         self.demo_proj_inputs1 = ContrailTestInit(
-                self.ini_file,
-                project_fq_name=[
-                    'default-domain',
-                    'demo'], logger=self.logger)
+            self.ini_file, stack_tenant='demo',logger=self.logger
+        )
         self.demo_proj_connections1 = ContrailConnections(
             self.demo_proj_inputs1, self.logger)
         self.connections = ContrailConnections(self.inputs, self.logger)
@@ -1834,12 +1832,9 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
             user_list[0][0],
             user_list[0][2])
         project_inputs1 = ContrailTestInit(
-                self.ini_file,
-                stack_user=project_fixture1.username,
-                stack_password=project_fixture1.password,
-                project_fq_name=[
-                    'default-domain',
-                    projects[0]], logger=self.logger)
+            self.ini_file, stack_user=project_fixture1.username,
+            stack_password=project_fixture1.password,
+            stack_tenant=projects[0], logger=self.logger)
         project_connections1 = ContrailConnections(
             project_inputs1,
             self.logger)
@@ -1865,12 +1860,10 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
             user_list[1][0],
             user_list[1][2])
         project_inputs2 = ContrailTestInit(
-                self.ini_file,
-                stack_user=project_fixture2.username,
-                stack_password=project_fixture2.password,
-                project_fq_name=[
-                    'default-domain',
-                    projects[1]], logger=self.logger)
+            self.ini_file,
+            stack_user=project_fixture2.username,
+            stack_password=project_fixture2.password,
+            stack_tenant=projects[1], logger=self.logger)
         project_connections2 = ContrailConnections(
             project_inputs2,
             self.logger)
