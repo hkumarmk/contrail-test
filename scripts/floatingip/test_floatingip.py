@@ -33,6 +33,7 @@ from fabric.context_managers import settings
 from fabric.api import run
 import base
 import test
+from tcutils.util import skip_because
 
 
 class FloatingipTestSanity(base.FloatingIpBaseTest):
@@ -131,8 +132,6 @@ class FloatingipTestSanity(base.FloatingIpBaseTest):
         assert fip_fixture.verify_fip(fip_id1, vn2_vm1_fixture, fvn_fixture)
         if not vn1_vm1_fixture.ping_with_certainty(fip_fixture.fip[fip_id1]):
             result = result and False
-        # fip_fixture.disassoc_and_delete_fip(fip_id)
-        # fip_fixture.disassoc_and_delete_fip(fip_id1)
         if not result:
             self.logger.error('Test to ping between VMs %s and %s' %
                               (vn1_vm1_name, vn2_vm1_name))
@@ -430,6 +429,7 @@ class FloatingipTestSanity(base.FloatingIpBaseTest):
     # end test_exhust_floating_ip_and_further_block_add
 
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter')
     def test_extend_fip_pool_runtime(self):
         '''Test addition of subnet in VN should extend FIP pool and communication from borrower VM to multiple subnet of allocating VNs
         '''
@@ -1627,6 +1627,7 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
     # test_fip_with_policy
 
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter')
     def test_fip_pool_shared_across_project(self):
         ''' Verify FIP Pool is shared accorss diffrent projects.
         '''
@@ -1645,9 +1646,9 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
         vm4_name = get_random_name('vm4')
         vm5_name = get_random_name('vm5')
 
-        self.demo_proj_inputs1 = ContrailTestInit(
+        self.demo_proj_inputs1 = self.useFixture(ContrailTestInit(
             self.ini_file, stack_tenant='demo',logger=self.logger
-        )
+        ))
         self.demo_proj_connections1 = ContrailConnections(
             self.demo_proj_inputs1, self.logger)
         self.connections = ContrailConnections(self.inputs, self.logger)
@@ -1723,7 +1724,7 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
         # Adding further projects to floating IP.
         self.logger.info('Adding project demo to FIP pool %s' %
                          (fip_pool_name))
-        project_obj = fip_fixture.assoc_project('demo')
+        project_obj = fip_fixture.assoc_project(fip_fixture, 'demo')
 
         # Asscociating FIP to VMs under demo project and exaust 4 fips available from the /29 subnet
         self.logger.info(
@@ -1783,7 +1784,7 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
         # Removing further projects from floating IP pool. For cleanup
         self.logger.info('Removing project demo to FIP pool %s' %
                          (fip_pool_name))
-        project_obj = fip_fixture.deassoc_project('demo')
+        project_obj = fip_fixture.deassoc_project(fip_fixture, 'demo')
 
         if not result:
             self.logger.error(
@@ -1793,6 +1794,7 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
     # end test_fip_pool_shared_across_project
 
     @preposttest_wrapper
+    @skip_because(orchestrator = 'vcenter')
     def test_communication_across__diff_proj(self):
         ''' Test communication across diffrent projects using Floating IP.
         '''
@@ -1831,10 +1833,10 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
             projects[0],
             user_list[0][0],
             user_list[0][2])
-        project_inputs1 = ContrailTestInit(
+        project_inputs1 = self.useFixture( ContrailTestInit(
             self.ini_file, stack_user=project_fixture1.username,
             stack_password=project_fixture1.password,
-            stack_tenant=projects[0], logger=self.logger)
+            stack_tenant=projects[0], logger=self.logger))
         project_connections1 = ContrailConnections(
             project_inputs1,
             self.logger)
@@ -1859,11 +1861,11 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
             projects[1],
             user_list[1][0],
             user_list[1][2])
-        project_inputs2 = ContrailTestInit(
+        project_inputs2 = self.useFixture(ContrailTestInit(
             self.ini_file,
             stack_user=project_fixture2.username,
             stack_password=project_fixture2.password,
-            stack_tenant=projects[1], logger=self.logger)
+            stack_tenant=projects[1], logger=self.logger))
         project_connections2 = ContrailConnections(
             project_inputs2,
             self.logger)
@@ -1924,7 +1926,7 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
         # Adding further projects to floating IP.
         self.logger.info('Adding project demo to FIP pool %s' %
                          (fip_pool_name))
-        project_obj = fip_fixture.assoc_project(projects[0])
+        project_obj = fip_fixture.assoc_project(fip_fixture, projects[0])
 
         self.logger.info(
             'Allocating FIP to VM %s in project %s from VN %s in project %s ' %
@@ -1940,7 +1942,7 @@ class FloatingipTestSanity2(base.FloatingIpBaseTest):
         # Removing further projects from floating IP pool. For cleanup
         self.logger.info('Removing project %s from FIP pool %s' %
                          (projects[0], fip_pool_name))
-        project_obj = fip_fixture.deassoc_project(projects[0])
+        project_obj = fip_fixture.deassoc_project(fip_fixture, projects[0])
 
         if not result:
             self.logger.error(
@@ -2699,8 +2701,6 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
 
             status = run('cd /opt/contrail/utils;' + add_static_route_cmd)
             self.logger.debug("%s" % status)
-            m = re.search(r'Creating Route table', status)
-            assert m, 'Failed in Creating Route table'
 
         compute_ip = vm2_fixture.vm_node_ip
         compute_user = self.inputs.host_data[compute_ip]['username']
@@ -3001,8 +3001,6 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
                 password=password, warn_only=True, abort_on_prompts=False, debug=True):
             status = run('cd /opt/contrail/utils;' + add_static_route_cmd)
             self.logger.debug("%s" % status)
-            m = re.search(r'Creating Route table', status)
-            assert m, 'Failed in Creating Route table'
 
         fip_fixture = self.useFixture(
             FloatingIPFixture(
@@ -3220,13 +3218,9 @@ class FloatingipTestSanity5(base.FloatingIpBaseTest):
                 password=password, warn_only=True, abort_on_prompts=False, debug=True):
             status1 = run('cd /opt/contrail/utils;' + add_static_route_cmd1)
             self.logger.debug("%s" % status1)
-            m = re.search(r'Creating Route table', status1)
-            assert m, 'Failed in Creating Route table'
 
             status2 = run('cd /opt/contrail/utils;' + add_static_route_cmd2)
             self.logger.debug("%s" % status2)
-            m = re.search(r'Creating Route table', status2)
-            assert m, 'Failed in Creating Route table'
 
         fip_pool_name1 = get_random_name('test-floating-pool1')
         fip_fixture1 = self.useFixture(
