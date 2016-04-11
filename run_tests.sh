@@ -54,6 +54,7 @@ send_mail=0
 concurrency=""
 parallel=0
 contrail_fab_path='/opt/contrail/utils'
+export SCRIPT_TS=${SCRIPT_TS:-$(date +"%Y_%m_%d_%H_%M_%S")}
 
 if ! options=$(getopt -o pVNnfuUsthdC:lLmF:T:c: -l prepare,virtual-env,no-virtual-env,no-site-packages,force,update,upload,sanity,parallel,help,debug,config:,logging,logging-config,send-mail,features:,tags:,concurrency:,contrail-fab-path: -- "$@")
 then
@@ -90,11 +91,6 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-#if [ -n $tags ];then
-#    testrargs+=$tags
-#fi
-
-#export SCRIPT_TS=$(date +"%F_%T")
 
 prepare
 
