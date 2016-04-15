@@ -58,7 +58,7 @@ failure_threshold=''
 contrail_fab_path='/opt/contrail/utils'
 export SCRIPT_TS=${SCRIPT_TS:-$(date +"%Y_%m_%d_%H_%M_%S")}
 
-if ! options=$(getopt -o pVNnfuUsthdC:lLmF:T:c: -l test-failure-threshold, prepare,virtual-env,no-virtual-env,no-site-packages,force,update,upload,sanity,parallel,help,debug,config:,logging,logging-config,send-mail,features:,tags:,concurrency:,contrail-fab-path: -- "$@")
+if ! options=$(getopt -o pVNnfuUsthdC:lLmF:T:c: -l test-failure-threshold:,prepare,virtual-env,no-virtual-env,no-site-packages,force,update,upload,sanity,parallel,help,debug,config:,logging,logging-config,send-mail,features:,tags:,concurrency:,contrail-fab-path: -- "$@")
 then
     # parse error
     usage
@@ -392,5 +392,10 @@ stop_on_failure ; rv_stop_on_fail=$?
 if [[ $rv_stop_on_fail > 0 ]]; then
     exit $rv_stop_on_fail
 else
-    exit $retval
+    # exit value more than 300 or so will revert the exit value in bash to a lower number, so checking that.
+    if [ $retval -lt 101 ]; then
+        exit $((100+$retval))
+    else
+        exit $retval
+    fi
 fi
